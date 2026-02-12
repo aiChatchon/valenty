@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Someone sent you thiss 💘</title>
+
+<style>
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background: radial-gradient(circle at top, #fff7fb, #ffedf3);
+    color:#2b2b2b;
+    overflow:hidden;
+  }
+
+  .card{
+    width:min(560px,92vw);
+    background: rgba(255,255,255,.85);
+    border-radius:22px;
+    padding:22px;
+    text-align:center;
+    box-shadow:0 18px 50px rgba(0,0,0,.08);
+    position:relative;
+  }
+
+  .slideshow{
+    width:100%;
+    aspect-ratio:16/10;
+    border-radius:18px;
+    overflow:hidden;
+    position:relative;
+    border:2px solid rgba(255,182,193,.55);
+    background:#fff;
+  }
+
+  .slide{
+    position:absolute;
+    inset:0;
+    background-size:cover;
+    background-position:center;
+    opacity:0;
+    transform: scale(1.02);
+    transition:opacity 900ms ease, transform 2200ms ease;
+    filter:saturate(1.05);
+  }
+  .slide.active{ opacity:1; transform:scale(1); }
+
+  .caption{
+    position:absolute;
+    left:14px; right:14px; bottom:12px;
+    background:rgba(255,255,255,.72);
+    border: 1px solid rgba(0,0,0,.06);
+    padding:10px 12px;
+    border-radius:14px;
+    font-size:14px;
+    backdrop-filter: blur(6px);
+    text-align:left;
+  }
+
+  h1{ margin: 12px 0 8px; font-size: 34px; }
+  p{ margin: 8px auto 14px; line-height:1.5; font-size: 16px; max-width: 46ch; }
+
+  .btns{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    margin-top:14px;
+    flex-wrap:wrap;
+    position:relative;
+  }
+
+  button{
+    border:0;
+    padding:12px 16px;
+    border-radius:14px;
+    font-size:16px;
+    cursor:pointer;
+    transition: transform .25s ease, box-shadow .25s ease, filter .25s ease, opacity .25s ease;
+    user-select:none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #yes{
+    background:#ff4d7d;
+    color:white;
+    box-shadow: 0 10px 25px rgba(255,77,125,.28);
+    transform-origin:center;
+  }
+
+  #no{
+    background:white;
+    border:1px solid rgba(0,0,0,.12);
+    color:#444;
+    transform-origin:center;
+  }
+
+  .hidden{ display:none; }
+
+  .videoWrap{
+    margin-top:14px;
+    border-radius:18px;
+    overflow:hidden;
+    background:black;
+    border: 2px solid rgba(255,182,193,.55);
+  }
+  video{ width:100%; display:block; }
+
+  .hint{
+    font-size:13px;
+    opacity:.75;
+    margin-top:8px;
+  }
+
+  /* Cinematic overlay */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0);
+    transition:background .6s;
+    pointer-events:none;
+    z-index:999;
+  }
+  .overlay.on{
+    background:rgba(0,0,0,.55);
+    pointer-events:auto;
+  }
+
+  /* Hearts */
+  .heart{
+    position:fixed;
+    font-size:22px;
+    pointer-events:none;
+    animation:pop .9s forwards;
+    z-index:1000;
+  }
+  @keyframes pop{
+    0%{opacity:0; transform:translate(-50%,-50%) scale(.5);}
+    20%{opacity:1;}
+    100%{opacity:0; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4);}
+  }
+
+  /* Yes pulse */
+  @keyframes pulseGlow{
+    0%   { filter: brightness(1); box-shadow: 0 10px 25px rgba(255,77,125,.25); }
+    50%  { filter: brightness(1.08); box-shadow: 0 14px 35px rgba(255,77,125,.40); }
+    100% { filter: brightness(1); box-shadow: 0 10px 25px rgba(255,77,125,.25); }
+  }
+  .pulse{ animation: pulseGlow 1.1s ease-in-out infinite; }
+
+  /* FIXED system toast (always visible) */
+  .toast{
+    position:fixed;
+    left:50%;
+    top:16px;
+    transform:translateX(-50%) translateY(-8px);
+    background: rgba(0,0,0,.80);
+    color:white;
+    padding:10px 12px;
+    border-radius:12px;
+    font-size:13px;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .25s ease, transform .25s ease;
+    z-index:2000;
+    max-width:min(92vw, 520px);
+    text-align:center;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+
+<body>
+
+<div class="overlay" id="overlay"></div>
+<div class="toast" id="toast">System: Wrong answer detected. Try again 💗</div>
+
+<div class="card" id="card">
+
+  <div class="slideshow">
+    <div id="s1" class="slide active"></div>
+    <div id="s2" class="slide"></div>
+    <div class="caption" id="cap">Us 🥹💘</div>
+  </div>
+
+  <h1>Will you be my Valentine?</h1>
+  <p>This took way longer than I thought ahahahha but worth itttt</p>
+
+  <div class="btns" id="btns">
+    <button id="yes">Yes 💖</button>
+    <button id="no">Noo 😭</button>
+  </div>
+
+  <div id="result" class="hidden">
+    <div class="videoWrap">
+      <video id="vid" controls playsinline preload="metadata">
+        <source src="valentine.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="hint" id="hint">Tap ▶ if it doesn’t auto-start 💞</div>
+  </div>
+
+</div>
+
+<script>
+/* ---------------- Slideshow ---------------- */
+const photos = [
+  {src:"p1.jpg", cap:"Would love to spend my childhood with uuu"},
+  {src:"p2.jpg", cap:"So long agooo"},
+  {src:"p3.jpg", cap:"Glamm couples mak (narn2 t ja dress dd gun)"},
+  {src:"p4.jpg", cap:"Miss AUSSSS 💘"}
+];
+
+const slides = [document.getElementById("s1"), document.getElementById("s2")];
+const cap = document.getElementById("cap");
+let i = 0, showing = 0;
+
+photos.forEach(p => { const img = new Image(); img.src = p.src; });
+
+slides[0].style.backgroundImage = `url('${photos[0].src}')`;
+cap.textContent = photos[0].cap;
+
+setInterval(() => {
+  i = (i + 1) % photos.length;
+  const next = 1 - showing;
+
+  slides[next].style.backgroundImage = `url('${photos[i].src}')`;
+  slides[next].classList.add("active");
+  slides[showing].classList.remove("active");
+
+  cap.textContent = photos[i].cap;
+  showing = next;
+}, 2600);
+
+
+/* ---------------- Game Logic ---------------- */
+const yes = document.getElementById("yes");
+const no = document.getElementById("no");
+const btns = document.getElementById("btns");
+const result = document.getElementById("result");
+const vid = document.getElementById("vid");
+const hint = document.getElementById("hint");
+const overlay = document.getElementById("overlay");
+const toast = document.getElementById("toast");
+const card = document.getElementById("card");
+
+let yesScale = 1;
+let noScale = 1;
+
+let step = 0;
+let noClicks = 0;
+let teleportUnlocked = false;
+
+const noTexts = [
+  "Noo 😭",
+  "Wait… no? 🥺",
+  "Are you sure? 😳",
+  "Think again 😤",
+  "Wrong answer 😭",
+  "Pls… 💔",
+  "I’m begging 😩",
+  "You can’t say no 😈",
+  "Okay you’re trolling 😭",
+  "Last chance… 🥹",
+  "Noo 💗",
+  "It’s literally YES 😤"
+];
+
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 1100);
+}
+
+function growYes(){
+  const growth = 1 + (0.10 + step * 0.05); // ramps up
+  step++;
+
+  yesScale *= growth;
+  yesScale = Math.min(yesScale, 3.6);
+  yes.style.transform = `scale(${yesScale})`;
+
+  if (noClicks >= 4) yes.classList.add("pulse");
+}
+
+function shrinkNo(){
+  noScale *= 0.92;             // shrink 8% each click (less aggressive than 10%)
+  noScale = Math.max(noScale, 0.42); // keep it visible
+  no.style.transform = `scale(${noScale})`;
+}
+
+/* TELEPORT: fixed position, safe inside screen, prefers edges */
+function teleportNo(){
+  const padding = 16;
+  const rect = no.getBoundingClientRect();
+
+  // pick an edge
+  const edge = Math.floor(Math.random() * 4); // 0 top, 1 right, 2 bottom, 3 left
+
+  // safe ranges
+  const minX = padding;
+  const maxX = window.innerWidth - rect.width - padding;
+  const minY = padding;
+  const maxY = window.innerHeight - rect.height - padding;
+
+  let x, y;
+
+  if (edge === 0) { // top
+    x = Math.random() * (maxX - minX) + minX;
+    y = minY;
+  } else if (edge === 1) { // right
+    x = maxX;
+    y = Math.random() * (maxY - minY) + minY;
+  } else if (edge === 2) { // bottom
+    x = Math.random() * (maxX - minX) + minX;
+    y = maxY;
+  } else { // left
+    x = minX;
+    y = Math.random() * (maxY - minY) + minY;
+  }
+
+  // make it fixed only once teleport starts
+  no.style.position = "fixed";
+  no.style.left = `${x}px`;
+  no.style.top = `${y}px`;
+  no.style.transform = `scale(${noScale})`;
+}
+
+/* After teleport unlock, dodge the cursor by teleporting */
+btns.addEventListener("mousemove", (e) => {
+  if (!teleportUnlocked) return;
+  if (!result.classList.contains("hidden")) return;
+
+  const r = no.getBoundingClientRect();
+  const dx = e.clientX - (r.left + r.width / 2);
+  const dy = e.clientY - (r.top + r.height / 2);
+  const dist = Math.hypot(dx, dy);
+
+  if (dist < 140){
+    teleportNo();
+  }
+});
+
+/* No click */
+no.addEventListener("click", () => {
+  noClicks++;
+
+  // update text
+  const idx = Math.min(noClicks, noTexts.length - 1);
+  no.textContent = noTexts[idx];
+
+  growYes();
+  shrinkNo();
+
+  if (navigator.vibrate) navigator.vibrate(40);
+
+  if (noClicks === 6) showToast("System: Wrong answer detected. Try again 💗");
+
+  if (noClicks >= 10 && !teleportUnlocked){
+    teleportUnlocked = true;
+    showToast("Warning: NO button is now unstable 😈");
+    // first teleport immediately so it jumps outside the card area
+    teleportNo();
+  } else if (teleportUnlocked){
+    teleportNo();
+  }
+});
+
+
+/* Hearts */
+function hearts(n=22){
+  const cx = window.innerWidth/2;
+  const cy = window.innerHeight/2;
+  for(let k=0;k<n;k++){
+    const h = document.createElement("div");
+    h.className = "heart";
+    h.textContent = "💖";
+
+    const a = Math.random() * Math.PI * 2;
+    const d = 80 + Math.random() * 150;
+
+    h.style.left = `${cx}px`;
+    h.style.top = `${cy}px`;
+    h.style.setProperty("--dx", `${Math.cos(a) * d}px`);
+    h.style.setProperty("--dy", `${Math.sin(a) * d}px`);
+
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), 900);
+  }
+}
+
+/* Yes click -> cinematic + video */
+async function accept(){
+  overlay.classList.add("on");
+  hearts();
+
+  setTimeout(async () => {
+    btns.classList.add("hidden");
+    result.classList.remove("hidden");
+
+    try{
+      await vid.play();
+      hint.textContent = "Hehe… watching together now 💞";
+    }catch{
+      hint.textContent = "Tap ▶ to play 💞";
+    }
+
+    setTimeout(() => overlay.classList.remove("on"), 650);
+  }, 420);
+}
+
+yes.addEventListener("click", accept);
+
+/* On resize, keep NO safe if it's already teleporting */
+window.addEventListener("resize", () => {
+  if (teleportUnlocked) teleportNo();
+});
+</script>
+
+</body>
+</html>
